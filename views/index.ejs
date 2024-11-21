@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Data</title>
+    <style>
+        body {
+            background-color: #f0f0f0; /* Light gray background */
+            color: #333; /* Dark gray text */
+            font-family: Arial, sans-serif; /* Use Arial font */
+        }
+        h1 {
+            color: #007bff; /* Blue heading text */
+        }
+        .container {
+            max-width: 600px; /* Limit width to 600px */
+            margin: 0 auto; /* Center the container */
+            padding: 20px; /* Add padding */
+            background-color: #fff; /* White background */
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Add shadow */
+        }
+        input[type="text"], input[type="submit"], button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        input[type="submit"], button {
+            background-color: #007bff; /* Blue button */
+            color: #fff; /* White text */
+            cursor: pointer; /* Add pointer cursor */
+        }
+        input[type="submit"]:hover, button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2; /* Light gray header background */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Save and View Student Data</h1>
+        <form id="studentForm">
+            <label for="studentid">Student ID:</label><br>
+            <input type="text" name="studentid" id="studentid"><br>
+            
+            <label for="name">Name:</label><br>
+            <input type="text" name="name" id="name"><br>
+            
+            <label for="class">Class:</label><br>
+            <input type="text" name="class" id="class"><br>
+            
+            <label for="age">Age:</label><br>
+            <input type="text" name="age" id="age"><br>
+            
+            <br>
+            <input type="submit" id="savestudent" value="Save Student Data">
+        </form>
+        <p id="studentSaved"></p>
+        
+        <br>
+        <button id="getstudents">View all Students</button>
+        <br><br>
+        <div id="showStudents">
+            <table id="studentTable">
+                <colgroup>
+                    <col style="width:20%">
+                    <col style="width:20%">
+                    <col style="width:20%">
+                    <col style="width:20%">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Age</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Students will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Handle form submission to save student data
+        document.getElementById('studentForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            
+            const studentData = {
+                studentid: document.getElementById('studentid').value,
+                name: document.getElementById('name').value,
+                class: document.getElementById('class').value,
+                age: document.getElementById('age').value
+            };
+            
+            const response = await fetch('/add-student', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(studentData)
+            });
+
+            if (response.ok) {
+                document.getElementById('studentSaved').innerText = 'Student data saved successfully!';
+                document.getElementById('studentForm').reset();
+            } else {
+                document.getElementById('studentSaved').innerText = 'Error saving student data.';
+            }
+        });
+
+        // Handle "View all Students" button click
+        document.getElementById('getstudents').addEventListener('click', async function () {
+            const studentTableBody = document.querySelector("#studentTable tbody");
+            
+            // Clear previous table content before fetching new data
+            studentTableBody.innerHTML = ''; 
+
+            const response = await fetch('/get-students');
+            const students = await response.json();
+
+            if (students.length > 0) {
+                students.forEach(student => {
+                    const row = `
+                        <tr>
+                            <td>${student.studentid}</td>
+                            <td>${student.name}</td>
+                            <td>${student.class}</td>
+                            <td>${student.age}</td>
+                        </tr>`;
+                    studentTableBody.insertAdjacentHTML('beforeend', row);
+                });
+            } else {
+                studentTableBody.innerHTML = '<tr><td colspan="4">No students available</td></tr>';
+            }
+        });
+    </script>
+</body>
+</html>
